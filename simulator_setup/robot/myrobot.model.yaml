@@ -42,7 +42,7 @@ plugins:
     # noise_std_dev: 0.015
     # arena
     noise_std_dev: 0.0
-    update_rate: 10
+    update_rate: 50
 
 
   - type: ModelTfPublisher
