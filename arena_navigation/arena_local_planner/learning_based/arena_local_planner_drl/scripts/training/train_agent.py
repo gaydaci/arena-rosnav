@@ -80,7 +80,7 @@ def get_paths(agent_name: str, args) -> dict:
         "robot_setting": os.path.join(
             rospkg.RosPack().get_path("simulator_setup"),
             "robot",
-            "myrobot" + ".model.yaml",
+            "tb3" + ".model.yaml",
         ),
         "hyperparams": os.path.join(dir, "configs", "hyperparameters"),
         "robot_as": os.path.join(dir, "configs", "default_settings.yaml"),

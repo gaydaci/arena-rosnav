@@ -160,14 +160,15 @@ class FlatlandEnv(gym.Env):
             robot_data = yaml.safe_load(fd)
             # get robot radius
             for body in robot_data["bodies"]:
-                if body["name"] == "base_footprint":
+                if body["name"] in ["base_footprint", "shell"]:
                     for footprint in body["footprints"]:
                         if footprint["type"] == "circle":
                             self._robot_radius = (
                                 footprint.setdefault("radius", 0.3) * 1.15
                             )
-                        if footprint["radius"]:
+                        if "radius" in footprint and footprint["radius"]:
                             self._robot_radius = footprint["radius"] * 1.15
+
             # get laser related information
             for plugin in robot_data["plugins"]:
                 if plugin["type"] == "Laser":
