@@ -10,10 +10,15 @@
   <arg name="local_planner"   default="teb"/>
   <arg name="waypoint_generator"   default="classic"/>
   <arg name="rviz_file"       default="nav"/>
-  <arg name="disable_scenario"    default="true"/>
+  <!-- <arg name="disable_scenario"    default="true"/> -->
+  <arg name="disable_scenario"    default="false"/>
   <arg name="scenario_file"   default="empty_map.json"/>
   <arg name="reset"   default="true"/>
-  <arg name="enable_pedsim" default="false"/>
+  <!-- <arg name="enable_pedsim" default="false"/> -->
+  <arg name="enable_pedsim" default="true"/>
+  <!-- <arg name="enable_sound" default="false"/> -->
+  <arg name="enable_sound" default="true"/>
+
 
   <!-- To make the training more efficient make sure this step_size*laser_update_rate == 1  -->
   <arg name="step_size" default="0.01"/>
@@ -143,6 +148,10 @@
       <param name="scene_file" value="$(arg scene_file)" type="string"/>
   </node>
 
+  <!-- Sound -->
+  <node name="sound_manager" pkg="arena_sound_manager" type="sound_manager_node" output="screen" if="$(arg enable_sound)">
+  </node>
+  
   <!-- launch map generator if training with random map-->
   <group if="$(eval arg('map_file') == 'random_map')">
     <node pkg="simulator_setup" name="map_generator_node" type="map_generator_node.py" />

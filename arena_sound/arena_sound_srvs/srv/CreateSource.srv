@@ -1,0 +1,7 @@
+# Create a source in OpenAL-Soft
+string sound_file_path
+float64 pos_x
+float64 pos_y
+---
+int16 source_id
+bool success

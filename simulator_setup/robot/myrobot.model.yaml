@@ -50,3 +50,12 @@ plugins:
     name: tf_publisher
     publish_tf_world: false
     # exclude: ["approx_footprint"]
+  
+  - type: SoundPlugin
+    name: sound_plugin
+    body: base_footprint
+    sound_file_path: _
+    is_listener: true
+    
+
+

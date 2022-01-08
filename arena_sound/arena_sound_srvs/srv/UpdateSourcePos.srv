@@ -1,0 +1,6 @@
+# Update a source's position in OpenAL
+int16 source_id
+float64 pos_x
+float64 pos_y
+---
+bool success
