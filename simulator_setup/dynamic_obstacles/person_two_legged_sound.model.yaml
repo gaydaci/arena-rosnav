@@ -74,8 +74,7 @@ plugins:
     ground_truth_pub: dynamic_human
     pub_rate: 10
 
-  - type: SoundPlugin
-    name: sound_plugin
+  - type: PedsimSound
+    name: pedsim_sound
     body: base
-    is_listener: false
-    sound_file_path: /home/thanos/catkin_ws/src/arena-rosnav/arena_sound/arena_sound_manager/sound_files/cellar-stairs-1.wav
+    # sound_file_path: /home/thanos/catkin_ws/src/arena-rosnav/arena_sound/arena_sound_manager/sound_files/cellar-stairs-1.wav

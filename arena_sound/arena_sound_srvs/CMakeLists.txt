@@ -57,7 +57,9 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
-  CreateSource.srv
+  CreatePedSources.srv
+  PrepareSource.srv
+  PlaySource.srv
   UpdateSourcePos.srv
   UpdateListenerPos.srv
   SourceStopped.srv

@@ -8,7 +8,7 @@
                 16.89
             ],
             "type": "adult",
-            "yaml_file": "/home/thanos/catkin_ws/src/arena-rosnav/simulator_setup/dynamic_obstacles/person_two_legged_sound2.model.yaml",
+            "yaml_file": "/home/thanos/catkin_ws/src/arena-rosnav/simulator_setup/dynamic_obstacles/person_two_legged_sound.model.yaml",
             "number_of_peds": 1,
             "vmax": 1.0,
             "start_up_mode": "default",
@@ -73,7 +73,7 @@
                 8.61
             ],
             "type": "adult",
-            "yaml_file": "/home/thanos/catkin_ws/src/arena-rosnav/simulator_setup/dynamic_obstacles/person_two_legged_sound.model.yaml",
+            "yaml_file": "/home/thanos/catkin_ws/src/arena-rosnav/simulator_setup/dynamic_obstacles/person_two_legged.model.yaml",
             "number_of_peds": 1,
             "vmax": 1.0,
             "start_up_mode": "default",

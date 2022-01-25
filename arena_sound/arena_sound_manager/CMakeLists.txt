@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   arena_sound_srvs
+  roslib
 )
 
 # OpenAL-Soft and libsndfile
@@ -109,7 +110,7 @@ find_library(LIBOPENAL_SOFT libopenal.so)
 catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES arena_sound_manager
-   CATKIN_DEPENDS roscpp std_msgs arena_sound_srvs
+   CATKIN_DEPENDS roscpp std_msgs arena_sound_srvs roslib
 #  DEPENDS system_lib
 )
 

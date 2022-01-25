@@ -21,133 +21,46 @@
 
 
 struct StreamPlayer {
-    
-    std::unique_ptr<ALbyte[]> mBufferData;
-    size_t mBufferDataSize{0};
 
-    
-    ALuint mBuffer{0}, mSource{0};
-    size_t mStartOffset{0};
-
-    /* Handle for the audio file to decode. */
-    SNDFILE *mSndfile{nullptr};
-    SF_INFO mSfInfo{};
-    sf_count_t num_frames{0};
-    ALsizei num_bytes{0};
-
-    /* The format of the samples. */
-    ALenum mFormat;
+    ALuint mSource{0};
 
     StreamPlayer()
     {   
-        alGenBuffers(1, &mBuffer);
-        if(ALenum err{alGetError()})
-            throw std::runtime_error{"alGenBuffers failed"};
+        // alGenBuffers(1, &mBuffer);
+        // if(ALenum err{alGetError()})
+        //     throw std::runtime_error{"alGenBuffers failed"};
+        // ROS_INFO("StreamPlayer: Generated buffer with id %ld", mBuffer);
         
         alGenSources(1, &mSource);
         if(ALenum err{alGetError()})
         {
-            alDeleteBuffers(1, &mBuffer);
-            throw std::runtime_error{"alGenSources failed"};
+            // alDeleteBuffers(1, &mBuffer);
+            ROS_ERROR("alGenSources failed");
         }
+        ROS_INFO("StreamPlayer: Generated source with id %d", mSource);
+
     }
     
     ~StreamPlayer()
     {
         alDeleteSources(1, &mSource);
-        alDeleteBuffers(1, &mBuffer);
-        if(mSndfile)
-            sf_close(mSndfile);
+        // alDeleteBuffers(1, &mBuffer);
+        // if(mSndfile)
+        //     sf_close(mSndfile);
     }
 
     void close()
     {
-        if(mSndfile)
-        {
-            ROS_INFO("Closing StreamPlayer!\n");
-            alSourceRewind(mSource);
-            alSourcei(mSource, AL_BUFFER, 0);
-            sf_close(mSndfile);
-            mSndfile = nullptr;
-        }
-    }
-
-    bool open(const char *filename)
-    {
-        close();
-
-        /* Open the file and figure out the OpenAL format. */
-        mSndfile = sf_open(filename, SFM_READ, &mSfInfo);
-        if(!mSndfile)
-        {
-            ROS_ERROR("Could not open audio in %s: %s\n", filename, sf_strerror(mSndfile));
-            return false;
-        }
-
-        if(mSfInfo.frames < 1 || mSfInfo.frames > static_cast<sf_count_t>(INT_MAX/sizeof(short))/mSfInfo.channels)
-        {
-            ROS_ERROR("Bad sample count in %s (%ld)\n", filename, mSfInfo.frames);
-            sf_close(mSndfile);
-            return false;
-        }
-
-        mFormat = AL_NONE;
-        if(mSfInfo.channels == 1)
-            mFormat = AL_FORMAT_MONO16;
-        else if(mSfInfo.channels == 2)
-            mFormat = AL_FORMAT_STEREO16;
-        else if(mSfInfo.channels == 3)
-        {
-            if(sf_command(mSndfile, SFC_WAVEX_GET_AMBISONIC, NULL, 0) == SF_AMBISONIC_B_FORMAT)
-                mFormat = AL_FORMAT_BFORMAT2D_16;
-        }
-        else if(mSfInfo.channels == 4)
-        {
-            if(sf_command(mSndfile, SFC_WAVEX_GET_AMBISONIC, NULL, 0) == SF_AMBISONIC_B_FORMAT)
-                mFormat = AL_FORMAT_BFORMAT3D_16;
-        }
-        if(!mFormat)
-        {
-            ROS_ERROR("Unsupported channel count: %d\n", mSfInfo.channels);
-            sf_close(mSndfile);
-            mSndfile = nullptr;
-
-            return false;
-        }
-
-        mBufferDataSize = static_cast<ALuint>(mSfInfo.frames*mSfInfo.channels) * static_cast<ALuint>(sizeof(short));
-        mBufferData = std::unique_ptr<ALbyte[]>(new ALbyte[mBufferDataSize]);
         
-        num_frames = sf_readf_short(mSndfile, 
-                            reinterpret_cast<short*>(&mBufferData[0]),
-                            static_cast<sf_count_t>(mSfInfo.frames));
-        if(num_frames < 1)
-        {
-            sf_close(mSndfile);
-            ROS_ERROR("Failed to read samples in %s (%ld)\n", filename, num_frames);
-            return 0;
-        }
-       
-        num_bytes = static_cast<ALsizei>(num_frames * mSfInfo.channels) * static_cast<ALsizei>(sizeof(short));
-        
-        auto mBufferDataPtr = mBufferData.release();
-        alBufferData(mBuffer, mFormat, mBufferDataPtr, num_bytes, mSfInfo.samplerate);
-
-        sf_close(mSndfile);
-
-        if(ALenum err{alGetError()}) {
-            throw std::runtime_error{"OpenAL failed"};
-            if(mBuffer && alIsBuffer(mBuffer)) {
-                alDeleteBuffers(1, &mBuffer);
-                return false;
-            }
-        }
-            
-        return true;
+        ROS_INFO("!!!Closing StreamPlayer %d!\n", mSource);
+        alSourceRewind(mSource);
+        alSourcei(mSource, AL_BUFFER, 0);
     }
 
     bool prepare(float pos_x_source, float pos_y_source)
     {
+
+        // ROS_INFO("prepare: %d id", mSource);
         // Source position is not relative to the listener
         alSourcei(mSource, AL_SOURCE_RELATIVE, AL_FALSE);
         
@@ -166,10 +79,10 @@ struct StreamPlayer {
         //ALfloat reference_distance = 2.5f;
         // turns looping on
         alSourcei(mSource, AL_LOOPING, AL_TRUE);
-        alSourcei(mSource, AL_BUFFER, static_cast<ALint>(mBuffer));
+        
         if(ALenum err{alGetError()})
         {
-            ROS_ERROR("Failed to setup sound source %s (0x%04x)\n", alGetString(err), err);
+            ROS_ERROR("Failed to setup sound source%d %s (0x%04x)\n", mSource, alGetString(err), err);
             return false;
         }
         return true;
@@ -179,7 +92,7 @@ struct StreamPlayer {
     {
         ALenum state;
         alGetSourcei(mSource, AL_SOURCE_STATE, &state);
-        ROS_INFO("source's state is: %d", state);
+        // ROS_INFO("source's state is: %d", state);
         if (state == AL_STOPPED || state == AL_INITIAL) {
             close();
             return true;
@@ -224,14 +137,20 @@ struct StreamPlayer {
         return true;
     }
 
-    void play()
+    bool play(int buffer_id)
     {
-        alSourcePlay(mSource);
+        close();
+        if( buffer_id != 0) {
+            alSourcei(mSource, AL_BUFFER, buffer_id);
+            alSourcePlay(mSource);
+        } 
+
         if(ALenum err{alGetError()})
         {
             ROS_ERROR("Failed to play sound source %s (0x%04x)\n", alGetString(err), err);
-            return;
+            return false;
         }
+        return true;
     }
 
     // void al_nssleep(unsigned long nsec)

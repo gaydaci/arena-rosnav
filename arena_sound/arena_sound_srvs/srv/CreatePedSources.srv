@@ -1,0 +1,4 @@
+# Create sources corresponding to Pedsim Agents in OpenAL-Soft
+int16[] source_ids
+---
+bool success
