@@ -250,7 +250,9 @@ class StagedRandomTask(RandomTask):
             self._stages[self._curr_stage]["static"]
         )
         self.obstacles_manager.register_random_dynamic_obstacles(
-            self._stages[self._curr_stage]["dynamic"]
+            self._stages[self._curr_stage]["dynamic"],
+            min_obstacle_radius=0.1,
+            max_obstacle_radius=0.3,
         )
 
         print(
@@ -669,10 +671,11 @@ def get_predefined_task(
     models_folder_path = rospkg.RosPack().get_path("simulator_setup")
 
     # robot's yaml file is needed to get its radius.
+    robot_model = rospy.get_param("model")
     robot_manager = RobotManager(
         ns,
         map_response.map,
-        os.path.join(models_folder_path, "robot", "myrobot.model.yaml"),
+        os.path.join(models_folder_path, "robot", f"{robot_model}.model.yaml"),
     )
 
     obstacles_manager = ObstaclesManager(ns, map_response.map)
