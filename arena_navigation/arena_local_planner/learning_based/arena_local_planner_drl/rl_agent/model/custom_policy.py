@@ -12,11 +12,17 @@ from stable_baselines3.common.policies import ActorCriticPolicy
 from rl_agent.model.agent_factory import AgentFactory
 
 
+__all__ = ["MLP_ARENA2D_POLICY"]
+
+
 """ 
 _RS: Robot state size - placeholder for robot related inputs to the NN
 _L: Number of laser beams - placeholder for the laser beam data 
 """
-_RS = 2  # robot state size
+if not rospy.get_param("action_in_obs", default=False):
+    _RS = 2  # robot state size
+else:
+    _RS = 2 + 3  # rho, theta, linear x, linear y, angular z
 
 robot_model = rospy.get_param("model")
 
@@ -33,7 +39,10 @@ with open(yaml_ROBOT_SETTING_PATH, "r") as fd:
             laser_angle_max = plugin["angle"]["max"]
             laser_angle_increment = plugin["angle"]["increment"]
             _L = int(
-                round((laser_angle_max - laser_angle_min) / laser_angle_increment) + 1
+                round(
+                    (laser_angle_max - laser_angle_min) / laser_angle_increment
+                )
+                + 1
             )  # num of laser beams
             break
 
@@ -62,7 +71,10 @@ class MLP_ARENA2D(nn.Module):
 
         # Body network
         self.body_net = nn.Sequential(
-            nn.Linear(_L + _RS, 64), nn.ReLU(), nn.Linear(64, feature_dim), nn.ReLU()
+            nn.Linear(_L + _RS, 64),
+            nn.ReLU(),
+            nn.Linear(64, feature_dim),
+            nn.ReLU(),
         )
 
         # Policy network

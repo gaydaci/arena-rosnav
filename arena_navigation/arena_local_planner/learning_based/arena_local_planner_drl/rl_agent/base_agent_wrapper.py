@@ -117,6 +117,10 @@ class BaseDRLAgent(ABC):
 
         self._agent_params = hyperparams
         self._get_robot_name_from_params()
+        rospy.set_param(
+            "action_in_obs",
+            self._agent_params.get("actions_in_observationspace", False),
+        )
 
     def read_setting_files(
         self, robot_setting_yaml: str, action_space_yaml: str
@@ -239,6 +243,7 @@ class BaseDRLAgent(ABC):
         """Sets up the reward calculator."""
         assert self._agent_params and "reward_fnc" in self._agent_params
         self.reward_calculator = RewardCalculator(
+            holonomic=self._holonomic,
             robot_radius=self._robot_radius,
             safe_dist=1.6 * self._robot_radius,
             goal_radius=GOAL_RADIUS,
