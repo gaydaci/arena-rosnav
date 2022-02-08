@@ -153,6 +153,27 @@ struct StreamPlayer {
         return true;
     }
 
+    int get_source_offset() {
+        
+        ALenum state;
+        alGetSourcei(mSource, AL_SOURCE_STATE, &state);
+        // ROS_INFO("source's state is: %d", state);
+        if (state != AL_PLAYING) {
+            return 0;
+        }
+        int sample_offset;
+        alGetSourcei(mSource, AL_SAMPLE_OFFSET, &sample_offset);
+        // ROS_INFO("!!!! Current byte offset of source %d is %d", mSource, byte_offset);
+
+        if(ALenum err{alGetError()})
+        {
+            ROS_ERROR("Failed to get source's %d current offset %s (0x%04x)\n", mSource, alGetString(err), err);
+            return -1;
+        }
+
+        return sample_offset*2;
+    }
+
     // void al_nssleep(unsigned long nsec)
     // {
     //     struct timespec ts, rem;

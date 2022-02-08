@@ -1,4 +1,0 @@
-# Check if a source stopped playing
-int16 source_id
----
-bool stopped

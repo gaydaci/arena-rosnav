@@ -17,7 +17,7 @@ void SoundManager::init(ros::NodeHandle &nh)
     play_source_service_ = nh.advertiseService("play_source", &SoundManager::PlaySource, this);
     update_source_pos_service_ = nh.advertiseService("update_source_pos", &SoundManager::UpdateSourcePos, this);
     update_listener_pos_service_ = nh.advertiseService("update_listener_pos", &SoundManager::UpdateListenerPos, this);
-    source_stopped_service_ = nh.advertiseService("source_stopped", &SoundManager::SourceStopped, this);
+    get_source_volume_service_ = nh.advertiseService("get_source_volume", &SoundManager::GetSourceVolume, this);
     ros::spin();
 }
 
@@ -49,6 +49,8 @@ bool SoundManager::PlaySource(arena_sound_srvs::PlaySource::Request &request,
                               arena_sound_srvs::PlaySource::Response &response) {
     std::string sound_file = socialStateToSoundFile[request.social_state];
     int buffer_id = soundFileToBufferId[sound_file];
+
+    ROS_INFO("!!!!!! PlaySource: buffer_id: %d",buffer_id);
     if(!playerVector[request.source_id-1]->play(buffer_id)) {
         response.success = false;
         return false;
@@ -80,21 +82,51 @@ bool SoundManager::UpdateListenerPos(arena_sound_srvs::UpdateListenerPos::Reques
     return true;
 }
 
-bool SoundManager::SourceStopped(arena_sound_srvs::SourceStopped::Request &request,
-                   arena_sound_srvs::SourceStopped::Response &response)
+bool SoundManager::GetSourceVolume(arena_sound_srvs::GetSourceVolume::Request &request,
+                                  arena_sound_srvs::GetSourceVolume::Response &response) 
 {
-    if (playerVector.at(request.source_id)->source_stopped()) {
-        response.stopped = true;
+    std::string sound_file = socialStateToSoundFile[request.social_state];
+    int buffer_id = soundFileToBufferId[sound_file];
+    // ROS_INFO("!!!!!! GetSourceVolume: buffer_id: %d",buffer_id);
+
+    if (buffer_id == 0) {
+        response.success = true;
+        response.volume = 0.0f;
         return true;
     }
-    response.stopped = false;
-    return false;
+
+    int source_offset = playerVector[request.source_id-1]->get_source_offset();
+
+    if (source_offset < 0 ) {
+        response.success = false;
+        return false;
+    } else if (source_offset == 0) {
+        response.success = true;
+        response.volume = 0.0f;
+        return true;
+    }
+
+
+    int amplitude_at_offset = abs(bufferedData[buffer_id-1][source_offset]); 
+    double volume = amplitude_at_offset/bufferMaxSignal[buffer_id-1];
+    // ROS_INFO("!!!! Volume at buffer %d is %f\n amplitude_at_offset %d, max_signal %f", 
+    //             buffer_id, volume,amplitude_at_offset, bufferMaxSignal[buffer_id-1]);
+    
+    response.volume = volume;
+    response.success = true;
+    return true;
 }
 
 void SoundManager::CreateSocialStateToFileMap() {
     socialStateToSoundFile.insert(std::make_pair("Waiting", ""));
-    socialStateToSoundFile.insert(std::make_pair("Walking", (sound_files_path + ("footsteps-2.wav")).c_str()));
+    socialStateToSoundFile.insert(std::make_pair("Walking", (sound_files_path + ("footsteps-3s.wav")).c_str()));
     socialStateToSoundFile.insert(std::make_pair("Running", (sound_files_path + ("running-on-street-trimmed-3s.wav")).c_str()));
+    socialStateToSoundFile.insert(std::make_pair("GroupWalking", (sound_files_path + ("footsteps-3s.wav")).c_str()));
+    socialStateToSoundFile.insert(std::make_pair("Talking", (sound_files_path + ("agent_talking.wav")).c_str()));
+    socialStateToSoundFile.insert(std::make_pair("TalkingAndWalking", (sound_files_path + ("agent_talking_and_walking.wav")).c_str()));
+    socialStateToSoundFile.insert(std::make_pair("ListeningAndWalking", (sound_files_path + ("footsteps-3s.wav")).c_str()));
+    socialStateToSoundFile.insert(std::make_pair("Listening", ""));
+
 
     soundFileToBufferId.insert(std::make_pair("", 0));
 }
@@ -108,20 +140,26 @@ bool SoundManager::CreateBuffers()
         ROS_WARN("alGenBuffers failed");
         return false;
     }
-    if(alIsBuffer(buffers[0]) == AL_TRUE && alIsBuffer(buffers[1]) == AL_TRUE)
-        ROS_INFO("buffers created withs ids: %d, %d!", buffers[0], buffers[1]);
+    
+    for (int i = 0; i<NUM_BUFFERS; i++) {
+        if(alIsBuffer(buffers[i]) != AL_TRUE)
+            ROS_ERROR("SoundManager: Error creating buffer with id: %d!", buffers[i]);
+    }
 
-    if(!LoadBuffer(buffers[0], (sound_files_path + "footsteps-2.wav").c_str()))
+    if(!LoadBuffer(buffers[0], (sound_files_path + "footsteps-3s.wav").c_str()))
         ROS_ERROR("Loading buffer with id: %d failed!", buffers[0]);
     if(!LoadBuffer(buffers[1], (sound_files_path + "running-on-street-trimmed-3s.wav").c_str()))
         ROS_ERROR("Loading buffer with id: %d failed!", buffers[1]);
+    if(!LoadBuffer(buffers[2], (sound_files_path + "agent_talking.wav").c_str()))
+        ROS_ERROR("Loading buffer with id: %d failed!", buffers[2]);
+    if(!LoadBuffer(buffers[3], (sound_files_path + "agent_talking_and_walking.wav").c_str()))
+        ROS_ERROR("Loading buffer with id: %d failed!", buffers[3]);
 
-    ALint bufferSize[2];
-    alGetBufferi(buffers[0], AL_SIZE, &bufferSize[0]);
-    alGetBufferi(buffers[1], AL_SIZE, &bufferSize[1]);
-    if(alIsBuffer(buffers[0]) == AL_TRUE && alIsBuffer(buffers[1]) == AL_TRUE) {
-        ROS_INFO("Loaded buffer with ID %d and size: %d", buffers[0], bufferSize[0]);
-        ROS_INFO("Loaded buffer with ID %d and size: %d", buffers[1], bufferSize[1]);
+    ALint bufferSize[NUM_BUFFERS];
+    for (int i = 0; i<NUM_BUFFERS; i++) {
+        alGetBufferi(buffers[i], AL_SIZE, &bufferSize[i]);
+        if(alIsBuffer(buffers[i]) == AL_TRUE)
+            ROS_INFO("Loaded buffer with ID %d and size: %d", buffers[i], bufferSize[i]);
     }
 
     return true;
@@ -129,7 +167,8 @@ bool SoundManager::CreateBuffers()
 
 bool SoundManager::LoadBuffer(ALuint buffer_id, const char *filename)
 {
-    std::unique_ptr<ALbyte[]> mBufferData;
+    // std::unique_ptr<ALbyte[]> mBufferData;
+    short *mBufferData;
     size_t mBufferDataSize{0};
 
      /* Handle for the audio file to decode. */
@@ -181,11 +220,13 @@ bool SoundManager::LoadBuffer(ALuint buffer_id, const char *filename)
     }
 
     mBufferDataSize = static_cast<ALuint>(mSfInfo.frames*mSfInfo.channels) * static_cast<ALuint>(sizeof(short));
-    mBufferData = std::unique_ptr<ALbyte[]>(new ALbyte[mBufferDataSize]);
+    // mBufferData = std::unique_ptr<ALbyte[]>(new ALbyte[mBufferDataSize]);
+    mBufferData = new short[mBufferDataSize];
 
     num_frames = sf_readf_short(mSndfile, 
-                        reinterpret_cast<short*>(&mBufferData[0]),
-                        static_cast<sf_count_t>(mSfInfo.frames));
+                        // reinterpret_cast<short*>(&mBufferData[0]),
+                        mBufferData,
+                        static_cast<sf_count_t>(mSfInfo.frames));    
     if(num_frames < 1)
     {
         sf_close(mSndfile);
@@ -195,10 +236,19 @@ bool SoundManager::LoadBuffer(ALuint buffer_id, const char *filename)
     
     num_bytes = static_cast<ALsizei>(num_frames * mSfInfo.channels) * static_cast<ALsizei>(sizeof(short));
     
-    auto mBufferDataPtr = mBufferData.release();
+    // auto mBufferDataPtr = mBufferData.release();
     
-    alBufferData(buffer_id, mFormat, mBufferDataPtr, num_bytes, mSfInfo.samplerate);
+    // alBufferData(buffer_id, mFormat, mBufferDataPtr, num_bytes, mSfInfo.samplerate);
+    alBufferData(buffer_id, mFormat, mBufferData, num_bytes, mSfInfo.samplerate);
+
+    double signal_max;
+    sf_command (mSndfile, SFC_CALC_SIGNAL_MAX, &signal_max, sizeof (signal_max)) ;
+    ROS_INFO("LoadBuffers: filename %s\n, buffer_id: %d, buffer_size: %d, signal_max: %f, num_frames: %d",
+                 filename, buffer_id, num_bytes, signal_max, num_frames);
     
+    bufferMaxSignal.push_back(signal_max);
+    bufferedData.push_back(mBufferData);
+
     sf_close(mSndfile);
 
     if(ALenum err{alGetError()}) {

@@ -1,0 +1,6 @@
+# Get the current volume of a specific source
+int16 source_id
+string social_state
+---
+float64 volume
+bool success

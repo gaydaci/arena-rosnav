@@ -31,9 +31,9 @@
 #include <arena_sound_srvs/PlaySource.h>
 #include <arena_sound_srvs/UpdateSourcePos.h>
 #include <arena_sound_srvs/UpdateListenerPos.h>
-#include <arena_sound_srvs/SourceStopped.h>
+#include <arena_sound_srvs/GetSourceVolume.h>
 
-#define NUM_BUFFERS 2
+#define NUM_BUFFERS 4
 class SoundManager{
 
 private:
@@ -42,6 +42,9 @@ private:
     std::vector<StreamPlayer*> playerVector;
     // std::vector<std::shared_ptr<StreamPlayer>> playerVector;
 
+    std::vector<short*> bufferedData;
+    std::vector<double> bufferMaxSignal;
+
     std::string sound_files_path;
     ALuint buffers[NUM_BUFFERS];
 
@@ -49,12 +52,12 @@ private:
     std::map<std::string, int> soundFileToBufferId;
 
     ros::ServiceServer create_ped_sources_service_;
-    // ros::ServiceServer create_source_service_;
     ros::ServiceServer prepare_source_service_;
     ros::ServiceServer play_source_service_;
     ros::ServiceServer update_source_pos_service_;
     ros::ServiceServer update_listener_pos_service_;
-    ros::ServiceServer source_stopped_service_;
+    ros::ServiceServer get_source_volume_service_;
+
 
     // callbacks
 
@@ -83,8 +86,8 @@ public:
     bool UpdateListenerPos(arena_sound_srvs::UpdateListenerPos::Request &request,
                          arena_sound_srvs::UpdateListenerPos::Response &response);
 
-    bool SourceStopped(arena_sound_srvs::SourceStopped::Request &request,
-                       arena_sound_srvs::SourceStopped::Response &response);
+    bool GetSourceVolume(arena_sound_srvs::GetSourceVolume::Request &request,
+                         arena_sound_srvs::GetSourceVolume::Response &response);
 
     void CreateSocialStateToFileMap();
     

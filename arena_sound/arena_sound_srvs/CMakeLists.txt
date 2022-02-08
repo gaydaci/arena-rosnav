@@ -62,7 +62,7 @@ add_service_files(
   PlaySource.srv
   UpdateSourcePos.srv
   UpdateListenerPos.srv
-  SourceStopped.srv
+  GetSourceVolume.srv
 )
 
 ## Generate actions in the 'action' folder
