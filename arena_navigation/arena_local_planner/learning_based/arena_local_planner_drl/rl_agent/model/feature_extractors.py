@@ -13,7 +13,7 @@ from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 _RS: Robot state size - placeholder for robot related inputs to the NN
 _L: Number of laser beams - placeholder for the laser beam data 
 """
-if not rospy.get_param("action_in_obs", default=False):
+if not rospy.get_param("actions_in_obs", default=False):
     _RS = 2  # robot state size
 else:
     _RS = 2 + 3  # rho, theta, linear x, linear y, angular z
@@ -35,7 +35,6 @@ with open(yaml_ROBOT_SETTING_PATH, "r") as fd:
                 round(
                     (laser_angle_max - laser_angle_min) / laser_angle_increment
                 )
-                + 1
             )  # num of laser beams
             break
 
@@ -297,8 +296,6 @@ class EXTRACTOR_5(BaseFeaturesExtractor):
             nn.Conv1d(32, 64, 4, 2),
             nn.ReLU(),
             nn.Conv1d(64, 64, 3, 1),
-            nn.ReLU(),
-            nn.Conv1d(128, 256, 4, 4),
             nn.ReLU(),
             nn.Flatten(),
         )
