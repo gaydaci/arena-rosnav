@@ -57,7 +57,7 @@ struct StreamPlayer {
         alSourcei(mSource, AL_BUFFER, 0);
     }
 
-    bool prepare(float pos_x_source, float pos_y_source)
+    bool prepare(float pos_x_source, float pos_y_source, float source_gain)
     {
 
         // ROS_INFO("prepare: %d id", mSource);
@@ -70,8 +70,11 @@ struct StreamPlayer {
         source_pos[1] = pos_y_source;
         alSourcefv(mSource, AL_POSITION, source_pos);
 
-        ALfloat source_gain = 1.0f;
         alSourcef(mSource, AL_GAIN, source_gain);
+
+        // Set an upper threshhold for the sources gain
+        float max_gain = 3.0;
+        alSourcef(mSource, AL_MAX_GAIN, max_gain);
 
         // ALfloat max_distance = 1.0f;
         // alSourcef(mSource, AL_MAX_DISTANCE, max_distance);

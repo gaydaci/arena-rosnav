@@ -37,7 +37,7 @@ bool SoundManager::CreatePedSources(arena_sound_srvs::CreatePedSources::Request 
 bool SoundManager::PrepareSource(arena_sound_srvs::PrepareSource::Request &request,
                    arena_sound_srvs::PrepareSource::Response &response)
 {    
-    if(!playerVector[request.source_id-1]->prepare(request.pos_x, request.pos_y)) {
+    if(!playerVector[request.source_id-1]->prepare(request.pos_x, request.pos_y, request.gain)) {
         response.success = false;
         return false;
     }

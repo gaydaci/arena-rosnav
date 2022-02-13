@@ -2,5 +2,6 @@
 int16 source_id
 float64 pos_x
 float64 pos_y
+float64 gain
 ---
 bool success

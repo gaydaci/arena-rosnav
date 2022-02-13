@@ -41,18 +41,19 @@ struct AudioManager {
         if(!name || alcGetError(device) != AL_NO_ERROR)
             name = alcGetString(device, ALC_DEVICE_SPECIFIER);
 
+        ROS_INFO("Opened \"%s\"\n", name);
+
         // Configure the DistanceModel
         //alDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
         alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED);
-        ROS_INFO("Opened \"%s\"\n", name);
 
         ALfloat listener_orientation[6];
         alGetListenerfv(AL_ORIENTATION, listener_orientation);
-        ROS_INFO("Listener orientation: ");
-        for (int i = 0; i < 6; i++) {
-            ROS_INFO("%f ", listener_orientation[i]);
-        }
-        ROS_INFO("\n");
+        // ROS_INFO("Listener orientation: ");
+        // for (int i = 0; i < 6; i++) {
+        //     ROS_INFO("%f ", listener_orientation[i]);
+        // }
+        // ROS_INFO("\n");
 
         // Controls master gain
         // ALfloat listener_gain = 0.5;
