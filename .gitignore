@@ -54,3 +54,6 @@ __pycache__/
 #dolphin
 .directory
 
+# config files
+arena_sound/arena_sound_manager/sound_files/foo.yalm
+simulator_setup/scenarios/foork.json

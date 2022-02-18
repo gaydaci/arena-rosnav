@@ -14,6 +14,9 @@ find_package(catkin REQUIRED COMPONENTS
   roslib
 )
 
+find_package(PkgConfig)
+pkg_check_modules(YAMLCPP REQUIRED yaml-cpp)
+
 # OpenAL-Soft and libsndfile
 find_library(LIBSND_FILE libsndfile.so)
 find_library(LIBOPENAL_SOFT libopenal.so)
@@ -158,6 +161,7 @@ target_link_libraries(sound_manager_node
    ${catkin_LIBRARIES}
    ${LIBOPENAL_SOFT}
    ${LIBSND_FILE}
+   ${YAMLCPP_LIBRARIES}
  )
 
 #############

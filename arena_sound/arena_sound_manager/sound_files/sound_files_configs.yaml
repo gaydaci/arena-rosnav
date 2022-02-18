@@ -1,0 +1,11 @@
+Waiting: ''
+Walking: /home/thanos/catkin_ws/src/arena-rosnav/arena_sound/arena_sound_manager/sound_files/footsteps-3s.wav
+Running: /home/thanos/catkin_ws/src/arena-rosnav/arena_sound/arena_sound_manager/sound_files/running-on-street-trimmed-3s.wav
+GroupWalking: /home/thanos/catkin_ws/src/arena-rosnav/arena_sound/arena_sound_manager/sound_files/footsteps-3s.wav
+Talking: /home/thanos/catkin_ws/src/arena-rosnav/arena_sound/arena_sound_manager/sound_files/agent_talking.wav
+TalkingAndWalking: /home/thanos/catkin_ws/src/arena-rosnav/arena_sound/arena_sound_manager/sound_files/agent_talking_and_walking.wav
+ListeningAndWalking: /home/thanos/catkin_ws/src/arena-rosnav/arena_sound/arena_sound_manager/sound_files/footsteps-3s.wav
+Listening: ''
+TellStory: ''
+Driving: /home/thanos/catkin_ws/src/arena-rosnav/arena_sound/arena_sound_manager/sound_files/forklift_drive.wav
+GroupTalking: /home/thanos/catkin_ws/src/arena-rosnav/arena_sound/arena_sound_manager/sound_files/agent_talking.wav

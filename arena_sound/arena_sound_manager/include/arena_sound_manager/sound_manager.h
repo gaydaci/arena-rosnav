@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <limits.h>
 #include <cstdlib>
+#include <yaml-cpp/yaml.h>
 
 #include <ros/ros.h>
 #include <ros/package.h>
@@ -33,7 +34,6 @@
 #include <arena_sound_srvs/UpdateListenerPos.h>
 #include <arena_sound_srvs/GetSourceVolume.h>
 
-#define NUM_BUFFERS 4
 class SoundManager{
 
 private:
@@ -46,7 +46,10 @@ private:
     std::vector<double> bufferMaxSignal;
 
     std::string sound_files_path;
-    ALuint buffers[NUM_BUFFERS];
+    YAML::Node config;
+
+    std::vector<ALuint> buffers;
+    int num_buffers;
 
     std::map<std::string, std::string> socialStateToSoundFile;
     std::map<std::string, int> soundFileToBufferId;
@@ -66,7 +69,7 @@ public:
     }
 
     ~SoundManager() { 
-        alDeleteBuffers(NUM_BUFFERS, buffers);
+        alDeleteBuffers(num_buffers, buffers.data());
     }
 
     void init(ros::NodeHandle & nh);

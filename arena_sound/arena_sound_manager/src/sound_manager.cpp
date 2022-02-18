@@ -9,6 +9,10 @@ void SoundManager::init(ros::NodeHandle &nh)
     almgr = std::unique_ptr<AudioManager>(new AudioManager());
 
     sound_files_path = ros::package::getPath("arena_sound_manager") + "/sound_files/";
+    config = YAML::LoadFile(sound_files_path + "sound_files_configs.yaml");
+    if (config.Type() != YAML::NodeType::Map)
+        ROS_ERROR("SoundManager: YAML-Node loaded from 'sound_files_configs.yaml' is not of type YAML::NodeType::Map");
+    
     CreateSocialStateToFileMap();
     CreateBuffers();
 
@@ -118,48 +122,53 @@ bool SoundManager::GetSourceVolume(arena_sound_srvs::GetSourceVolume::Request &r
 }
 
 void SoundManager::CreateSocialStateToFileMap() {
-    socialStateToSoundFile.insert(std::make_pair("Waiting", ""));
-    socialStateToSoundFile.insert(std::make_pair("Walking", (sound_files_path + ("footsteps-3s.wav")).c_str()));
-    socialStateToSoundFile.insert(std::make_pair("Running", (sound_files_path + ("running-on-street-trimmed-3s.wav")).c_str()));
-    socialStateToSoundFile.insert(std::make_pair("GroupWalking", (sound_files_path + ("footsteps-3s.wav")).c_str()));
-    socialStateToSoundFile.insert(std::make_pair("Talking", (sound_files_path + ("agent_talking.wav")).c_str()));
-    socialStateToSoundFile.insert(std::make_pair("TalkingAndWalking", (sound_files_path + ("agent_talking_and_walking.wav")).c_str()));
-    socialStateToSoundFile.insert(std::make_pair("ListeningAndWalking", (sound_files_path + ("footsteps-3s.wav")).c_str()));
-    socialStateToSoundFile.insert(std::make_pair("Listening", ""));
 
+    socialStateToSoundFile.insert(std::make_pair("Waiting", config["Waiting"].as<string>()));
+    socialStateToSoundFile.insert(std::make_pair("Walking", (config["Walking"].as<string>()).c_str()));
+    socialStateToSoundFile.insert(std::make_pair("Running", (config["Running"].as<string>()).c_str()));
+    socialStateToSoundFile.insert(std::make_pair("GroupWalking", (config["GroupWalking"].as<string>()).c_str()));
+    socialStateToSoundFile.insert(std::make_pair("Talking", (config["Talking"].as<string>()).c_str()));
+    socialStateToSoundFile.insert(std::make_pair("TalkingAndWalking", (config["TalkingAndWalking"].as<string>()).c_str()));
+    socialStateToSoundFile.insert(std::make_pair("ListeningAndWalking", (config["ListeningAndWalking"].as<string>()).c_str()));
+    socialStateToSoundFile.insert(std::make_pair("Listening", config["Listening"].as<string>()));
+    socialStateToSoundFile.insert(std::make_pair("TellStory", config["TellStory"].as<string>()));
+    socialStateToSoundFile.insert(std::make_pair("Driving", (config["Driving"].as<string>()).c_str()));
+    socialStateToSoundFile.insert(std::make_pair("GroupTalking", (config["GroupTalking"].as<string>()).c_str()));
 
     soundFileToBufferId.insert(std::make_pair("", 0));
 }
 
 bool SoundManager::CreateBuffers()
 {
-    alGenBuffers(NUM_BUFFERS, buffers);
+    vector<string> filenames;
+    for (auto it = config.begin(); it != config.end(); ++it) {
+      auto f = it->second.as<string>();
+
+      if (find(filenames.begin(), filenames.end(), f) == filenames.end() and !f.empty())
+        filenames.push_back(f);
+    }
+
+    num_buffers = filenames.size();
+    buffers.reserve(num_buffers);
+    vector<int> bufferSize(num_buffers);
+
+    alGenBuffers(num_buffers, buffers.data());
 
     if(ALenum err{alGetError()})
     {
-        ROS_WARN("alGenBuffers failed");
+        ROS_ERROR("alGenBuffers failed");
         return false;
     }
     
-    for (int i = 0; i<NUM_BUFFERS; i++) {
+    for (int i = 0; i<num_buffers; i++) {
         if(alIsBuffer(buffers[i]) != AL_TRUE)
             ROS_ERROR("SoundManager: Error creating buffer with id: %d!", buffers[i]);
-    }
 
-    if(!LoadBuffer(buffers[0], (sound_files_path + "footsteps-3s.wav").c_str()))
-        ROS_ERROR("Loading buffer with id: %d failed!", buffers[0]);
-    if(!LoadBuffer(buffers[1], (sound_files_path + "running-on-street-trimmed-3s.wav").c_str()))
-        ROS_ERROR("Loading buffer with id: %d failed!", buffers[1]);
-    if(!LoadBuffer(buffers[2], (sound_files_path + "agent_talking.wav").c_str()))
-        ROS_ERROR("Loading buffer with id: %d failed!", buffers[2]);
-    if(!LoadBuffer(buffers[3], (sound_files_path + "agent_talking_and_walking.wav").c_str()))
-        ROS_ERROR("Loading buffer with id: %d failed!", buffers[3]);
+        if(!LoadBuffer(buffers[i], filenames[i].c_str()))
+            ROS_ERROR("Loading buffer with id: %d failed!", buffers[i]);
 
-    ALint bufferSize[NUM_BUFFERS];
-    for (int i = 0; i<NUM_BUFFERS; i++) {
         alGetBufferi(buffers[i], AL_SIZE, &bufferSize[i]);
-        if(alIsBuffer(buffers[i]) == AL_TRUE)
-            ROS_INFO("Loaded buffer with ID %d and size: %d", buffers[i], bufferSize[i]);
+        // ROS_INFO("Loaded buffer with ID %d and size: %d", buffers[i], bufferSize[i]);
     }
 
     return true;
@@ -220,11 +229,9 @@ bool SoundManager::LoadBuffer(ALuint buffer_id, const char *filename)
     }
 
     mBufferDataSize = static_cast<ALuint>(mSfInfo.frames*mSfInfo.channels) * static_cast<ALuint>(sizeof(short));
-    // mBufferData = std::unique_ptr<ALbyte[]>(new ALbyte[mBufferDataSize]);
     mBufferData = new short[mBufferDataSize];
 
     num_frames = sf_readf_short(mSndfile, 
-                        // reinterpret_cast<short*>(&mBufferData[0]),
                         mBufferData,
                         static_cast<sf_count_t>(mSfInfo.frames));    
     if(num_frames < 1)
@@ -235,15 +242,12 @@ bool SoundManager::LoadBuffer(ALuint buffer_id, const char *filename)
     }
     
     num_bytes = static_cast<ALsizei>(num_frames * mSfInfo.channels) * static_cast<ALsizei>(sizeof(short));
-    
-    // auto mBufferDataPtr = mBufferData.release();
-    
-    // alBufferData(buffer_id, mFormat, mBufferDataPtr, num_bytes, mSfInfo.samplerate);
+        
     alBufferData(buffer_id, mFormat, mBufferData, num_bytes, mSfInfo.samplerate);
 
     double signal_max;
     sf_command (mSndfile, SFC_CALC_SIGNAL_MAX, &signal_max, sizeof (signal_max)) ;
-    ROS_INFO("LoadBuffers: filename %s\n, buffer_id: %d, buffer_size: %d, signal_max: %f, num_frames: %d",
+    ROS_INFO("LoadBuffers: filename %s\n, buffer_id: %d, buffer_size: %d, signal_max: %f, num_frames: %ld",
                  filename, buffer_id, num_bytes, signal_max, num_frames);
     
     bufferMaxSignal.push_back(signal_max);
