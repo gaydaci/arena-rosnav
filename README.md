@@ -91,3 +91,57 @@ To test the different **Waypoint Generators**, follow the steps in [waypoint_eva
 - Flatland: http://flatland-simulator.readthedocs.io
 - ROS navigation stack: http://wiki.ros.org/navigation
 - Pedsim: https://github.com/srl-freiburg/pedsim_ros
+
+# Arena Sound 
+## Overview
+Arena-Rosnav has been extended to include an audio simulation in its 2D environment. In this integration of a sound simulation
+the dynamic obstacles of each scenario, that is to say the Pedsim agents, are going to produce a specific set of sounds according to their social state at each time of the simulation. In this context the navigating agent/robot will have the role of perceiving those sound signals in its environment and reproduce them through the system's default audio interface. In order for this sound reproduction to be done realistically, the position and the movement of all agents should affect the way the perceived sound is rendered.
+
+## OpenAL
+Considering those requirements the use of the OpenAL 3D audio API (http://openal.org/) was found to be a very suitable option. This library models a collection of audio sources moving in a 3D space that are heard by a single listener somewhere in that space. The basic OpenAL objects are a Listener, a Source, and a Buffer. There can be a large number of Buffers, which contain audio data. Each buffer can be attached to one or more Sources, which represent points in 3D space which are emitting audio. There is always one Listener object, which represents the position where the Sources are heard -- rendering is done from the perspective of the Listener.
+
+Given those capabilities enabled by the OpenAL Library, we can integrate its functionality into our simulation by using the Listener object for our navigation agent/robot and the Sources for the Pedsim agents accordingly. Furthermore we are using a number of Buffers, each one of them being loaded with audio data corresponding to one of the social states a Pedsim agent can take.
+
+<img width="400" height="400" src="/img/openal_diagram.png"> 
+
+The implemantation used for the OpenAL Library is OpenAL-Soft (https://openal-soft.org/). The latest release version is 1.21.1
+
+# Demo
+
+#### 1. Add Arena Sound to a launch file
+
+Add the following to the launch file you want to use:
+```
+  <arg name="enable_sound" default="true"/>
+  
+  <node name="sound_manager" pkg="arena_sound_manager" type="sound_manager_node" output="screen" if="$(arg enable_sound)">
+  </node>
+```
+#### 2. Add flatland's SoundPlugin in the model connected to the Listener
+
+Add the following to the robot yaml model you are using (e.g. simulator_setup/robot/myrobot.model.yaml) in order to connect it with the OpenAL's Listener object
+```
+plugins:
+  - type: SoundPlugin
+    name: sound_plugin
+    body: base_footprint
+```
+
+The body parameter corresponds to the main body's name of the model.
+#### 3. Add flatland's PedsimSound Plugin in the models connected to the Sources
+
+Add the following to the Pedsim agents yaml models (e.g. simulator_setup/dynamic_obstacles/person_two_legged_sound.model.yaml) included in the Scenario you are using in order to connect them to OpenAL's Sources objects.
+```
+plugins:
+  - type: PedsimSound
+    name: pedsim_sound
+    body: base
+    gain: 1.0
+```
+
+* The body parameter corresponds to the main body's name of the model.
+* The gain parameter is a scalar amplitude multiplier for the connected Source object's emiting sounds. 
+    * the default 1.0 means that the sound is unattenuated 
+    * a value of 0.5 is equivalent to an attenuation of 6 dB
+    * zero equals silence
+    * gain larger than 1.0 causes an amplification for the Source
