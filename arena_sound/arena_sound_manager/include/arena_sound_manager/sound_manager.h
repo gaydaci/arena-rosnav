@@ -27,6 +27,7 @@
 
 #include "almgr.h"
 #include "stream_player.h"
+#include <arena_sound_srvs/AudioBufferData.h>
 #include <arena_sound_srvs/CreatePedSources.h>
 #include <arena_sound_srvs/PrepareSource.h>
 #include <arena_sound_srvs/PlaySource.h>
@@ -37,13 +38,12 @@
 class SoundManager{
 
 private:
+    ros::NodeHandle nh;
+
     std::unique_ptr<AudioManager> almgr;
 
     std::vector<StreamPlayer*> playerVector;
     // std::vector<std::shared_ptr<StreamPlayer>> playerVector;
-
-    std::vector<short*> bufferedData;
-    std::vector<double> bufferMaxSignal;
 
     std::string sound_files_path;
     YAML::Node config;
@@ -54,6 +54,9 @@ private:
     std::map<std::string, std::string> socialStateToSoundFile;
     std::map<std::string, int> soundFileToBufferId;
 
+    std::vector<std::vector<short>> bufferedData;
+    std::vector<double> bufferMaxSignal;
+
     ros::ServiceServer create_ped_sources_service_;
     ros::ServiceServer prepare_source_service_;
     ros::ServiceServer play_source_service_;
@@ -61,9 +64,8 @@ private:
     ros::ServiceServer update_listener_pos_service_;
     ros::ServiceServer get_source_volume_service_;
 
-
-    // callbacks
-
+    std::vector<ros::Publisher> buffer_data_pubs;
+    std::vector<arena_sound_srvs::AudioBufferData> buffer_data_msgs;
 public:
     SoundManager() {
     }

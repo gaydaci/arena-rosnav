@@ -174,15 +174,6 @@ struct StreamPlayer {
             return -1;
         }
 
-        return sample_offset*2;
+        return sample_offset;
     }
-
-    // void al_nssleep(unsigned long nsec)
-    // {
-    //     struct timespec ts, rem;
-    //     ts.tv_sec = static_cast<time_t>(nsec / 1000000000ul);
-    //     ts.tv_nsec = static_cast<long>(nsec % 1000000000ul);
-    //     while(nanosleep(&ts, &rem) == -1 && errno == EINTR)
-    //         ts = rem;
-    // }   
 };

@@ -4,7 +4,7 @@ using namespace std;
 
 void SoundManager::init(ros::NodeHandle &nh)
 {
-    ros::NodeHandle n;
+    nh = nh; //TODO fix
 
     almgr = std::unique_ptr<AudioManager>(new AudioManager());
 
@@ -32,6 +32,11 @@ bool SoundManager::CreatePedSources(arena_sound_srvs::CreatePedSources::Request 
         ROS_INFO("CreatePedSources: %d", request.source_ids[i]);
         StreamPlayer* player = new StreamPlayer();
         playerVector.push_back(player);
+
+        string buffer_data_topic = "audio_buffer_data_source_" + to_string(request.source_ids[i]);
+        // ROS_INFO("CreatePedSources %s", buffer_data_topic.c_str());
+        ros::Publisher buffer_data_pub = nh.advertise<arena_sound_srvs::AudioBufferData>(buffer_data_topic, 1);
+        buffer_data_pubs.push_back(buffer_data_pub);
     }
 
     response.success = true;
@@ -59,6 +64,12 @@ bool SoundManager::PlaySource(arena_sound_srvs::PlaySource::Request &request,
         response.success = false;
         return false;
     }
+
+    if (buffer_id > 0) {
+        // Publich the buffer data of the sound file currently playing
+        buffer_data_pubs[request.source_id-1].publish(buffer_data_msgs[buffer_id-1]);
+    }
+    
     response.success = true;
     return true;
 }
@@ -99,19 +110,19 @@ bool SoundManager::GetSourceVolume(arena_sound_srvs::GetSourceVolume::Request &r
         return true;
     }
 
-    int source_offset = playerVector[request.source_id-1]->get_source_offset();
+    int source_sample_offset = playerVector[request.source_id-1]->get_source_offset();
 
-    if (source_offset < 0 ) {
+    if (source_sample_offset < 0 ) {
         response.success = false;
         return false;
-    } else if (source_offset == 0) {
+    } else if (source_sample_offset == 0) {
         response.success = true;
         response.volume = 0.0f;
         return true;
     }
 
-
-    int amplitude_at_offset = abs(bufferedData[buffer_id-1][source_offset]); 
+    int source_byte_offset = source_sample_offset*2;
+    int amplitude_at_offset = abs(bufferedData[buffer_id-1][source_byte_offset]); 
     double volume = amplitude_at_offset/bufferMaxSignal[buffer_id-1];
     // ROS_INFO("!!!! Volume at buffer %d is %f\n amplitude_at_offset %d, max_signal %f", 
     //             buffer_id, volume,amplitude_at_offset, bufferMaxSignal[buffer_id-1]);
@@ -176,7 +187,6 @@ bool SoundManager::CreateBuffers()
 
 bool SoundManager::LoadBuffer(ALuint buffer_id, const char *filename)
 {
-    // std::unique_ptr<ALbyte[]> mBufferData;
     short *mBufferData;
     size_t mBufferDataSize{0};
 
@@ -231,6 +241,7 @@ bool SoundManager::LoadBuffer(ALuint buffer_id, const char *filename)
     mBufferDataSize = static_cast<ALuint>(mSfInfo.frames*mSfInfo.channels) * static_cast<ALuint>(sizeof(short));
     mBufferData = new short[mBufferDataSize];
 
+    // Fill all the frames of the sound file into the array  
     num_frames = sf_readf_short(mSndfile, 
                         mBufferData,
                         static_cast<sf_count_t>(mSfInfo.frames));    
@@ -243,15 +254,31 @@ bool SoundManager::LoadBuffer(ALuint buffer_id, const char *filename)
     
     num_bytes = static_cast<ALsizei>(num_frames * mSfInfo.channels) * static_cast<ALsizei>(sizeof(short));
         
+    // Fill buffer with the PCM data
     alBufferData(buffer_id, mFormat, mBufferData, num_bytes, mSfInfo.samplerate);
 
     double signal_max;
     sf_command (mSndfile, SFC_CALC_SIGNAL_MAX, &signal_max, sizeof (signal_max)) ;
-    ROS_INFO("LoadBuffers: filename %s\n, buffer_id: %d, buffer_size: %d, signal_max: %f, num_frames: %ld",
-                 filename, buffer_id, num_bytes, signal_max, num_frames);
-    
     bufferMaxSignal.push_back(signal_max);
-    bufferedData.push_back(mBufferData);
+
+    ROS_INFO("LoadBuffers: filename %s\n, buffer_id: %d,mBufferDataSize: %ld\n num_bytes: %d, signal_max: %f, num_frames: %ld",
+             filename, buffer_id, mBufferDataSize,
+             num_bytes, signal_max, num_frames);
+
+    vector<short> bufferDataVector;
+    for (int i=0; i < num_bytes; i++) {
+        bufferDataVector.push_back(mBufferData[i]);
+    }
+    bufferedData.push_back(bufferDataVector);
+
+    // Define the AudioBufferData messages to be published when a buffer is played
+    arena_sound_srvs::AudioBufferData msg;
+    msg.audio_buffer_data = bufferDataVector;
+    msg.buffer_size = num_bytes;
+    msg.buffer_id = buffer_id;
+    msg.sample_rate = mSfInfo.samplerate;
+    msg.channels = mSfInfo.channels;
+    buffer_data_msgs.push_back(msg);
 
     sf_close(mSndfile);
 
