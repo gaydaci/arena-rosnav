@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0.2)
 project(arena_intermediate_planner)
 
 ## Compile as C++14, supported in ROS Noetic and newer
-set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS} -O3 -Wall") # -Wextra -Werror
+set(CMAKE_CXX_FLAGS "-std=c++14 ${CMAKE_CXX_FLAGS} -O3 -Wall") # -Wextra -Werror
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
