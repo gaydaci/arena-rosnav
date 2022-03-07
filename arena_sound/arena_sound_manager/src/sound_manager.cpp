@@ -4,8 +4,6 @@ using namespace std;
 
 void SoundManager::init(ros::NodeHandle &nh)
 {
-    nh = nh; //TODO fix
-
     almgr = std::unique_ptr<AudioManager>(new AudioManager());
 
     sound_files_path = ros::package::getPath("arena_sound_manager") + "/sound_files/";
@@ -16,12 +14,14 @@ void SoundManager::init(ros::NodeHandle &nh)
     CreateSocialStateToFileMap();
     CreateBuffers();
 
+    nh = nh;
     create_ped_sources_service_ = nh.advertiseService("create_ped_sources", &SoundManager::CreatePedSources, this);
     prepare_source_service_ = nh.advertiseService("prepare_source", &SoundManager::PrepareSource, this);
     play_source_service_ = nh.advertiseService("play_source", &SoundManager::PlaySource, this);
     update_source_pos_service_ = nh.advertiseService("update_source_pos", &SoundManager::UpdateSourcePos, this);
     update_listener_pos_service_ = nh.advertiseService("update_listener_pos", &SoundManager::UpdateListenerPos, this);
     get_source_volume_service_ = nh.advertiseService("get_source_volume", &SoundManager::GetSourceVolume, this);
+
     ros::spin();
 }
 
