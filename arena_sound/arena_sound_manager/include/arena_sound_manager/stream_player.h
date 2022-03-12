@@ -25,16 +25,10 @@ struct StreamPlayer {
     ALuint mSource{0};
 
     StreamPlayer()
-    {   
-        // alGenBuffers(1, &mBuffer);
-        // if(ALenum err{alGetError()})
-        //     throw std::runtime_error{"alGenBuffers failed"};
-        // ROS_INFO("StreamPlayer: Generated buffer with id %ld", mBuffer);
-        
+    {           
         alGenSources(1, &mSource);
         if(ALenum err{alGetError()})
         {
-            // alDeleteBuffers(1, &mBuffer);
             ROS_ERROR("alGenSources failed");
         }
         ROS_INFO("StreamPlayer: Generated source with id %d", mSource);
@@ -44,9 +38,6 @@ struct StreamPlayer {
     ~StreamPlayer()
     {
         alDeleteSources(1, &mSource);
-        // alDeleteBuffers(1, &mBuffer);
-        // if(mSndfile)
-        //     sf_close(mSndfile);
     }
 
     void close()
@@ -166,7 +157,7 @@ struct StreamPlayer {
         }
         int sample_offset;
         alGetSourcei(mSource, AL_SAMPLE_OFFSET, &sample_offset);
-        // ROS_INFO("!!!! Current byte offset of source %d is %d", mSource, byte_offset);
+        // ROS_INFO("!!!! Current sample offset of source %d is %d", mSource, byte_offset);
 
         if(ALenum err{alGetError()})
         {

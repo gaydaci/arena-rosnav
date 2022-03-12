@@ -7,5 +7,4 @@ TalkingAndWalking: /home/thanos/catkin_ws/src/arena-rosnav/arena_sound/arena_sou
 ListeningAndWalking: /home/thanos/catkin_ws/src/arena-rosnav/arena_sound/arena_sound_manager/sound_files/footsteps-3s.wav
 Listening: ''
 TellStory: ''
-Driving: /home/thanos/catkin_ws/src/arena-rosnav/arena_sound/arena_sound_manager/sound_files/forklift_drive.wav
 GroupTalking: /home/thanos/catkin_ws/src/arena-rosnav/arena_sound/arena_sound_manager/sound_files/agent_talking.wav

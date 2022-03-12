@@ -28,6 +28,7 @@
 #include "almgr.h"
 #include "stream_player.h"
 #include <arena_sound_srvs/AudioBufferData.h>
+#include <arena_sound_srvs/AudioCurrentOffset.h>
 #include <arena_sound_srvs/CreatePedSources.h>
 #include <arena_sound_srvs/PrepareSource.h>
 #include <arena_sound_srvs/PlaySource.h>
@@ -66,6 +67,8 @@ private:
 
     std::vector<ros::Publisher> buffer_data_pubs;
     std::vector<arena_sound_srvs::AudioBufferData> buffer_data_msgs;
+
+    std::vector<ros::Publisher> audio_offset_pubs;
 public:
     SoundManager() {
     }

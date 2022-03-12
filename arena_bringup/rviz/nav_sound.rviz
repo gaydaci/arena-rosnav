@@ -563,7 +563,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /sound_viz_1
+      Marker Topic: /sound_visualization_1
       Name: sound1
       Namespaces:
         {}
@@ -571,7 +571,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /sound_viz_2
+      Marker Topic: /sound_visualization_2
       Name: sound2
       Namespaces:
         {}
@@ -579,7 +579,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /sound_viz_3
+      Marker Topic: /sound_visualization_3
       Name: sound3
       Namespaces:
         {}
@@ -587,7 +587,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /sound_viz_4
+      Marker Topic: /sound_visualization_4
       Name: sound4
       Namespaces:
         {}
@@ -595,7 +595,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /sound_viz_5
+      Marker Topic: /sound_visualization_5
       Name: sound5
       Namespaces:
         {}
@@ -603,7 +603,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /sound_viz_6
+      Marker Topic: /sound_visualization_6
       Name: sound6
       Namespaces:
         {}
@@ -611,7 +611,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /sound_viz_7
+      Marker Topic: /sound_visualization_7
       Name: sound7
       Namespaces:
         {}
@@ -619,7 +619,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /sound_viz_8
+      Marker Topic: /sound_visualization_8
       Name: sound8
       Namespaces:
         {}
@@ -627,7 +627,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /sound_viz_9
+      Marker Topic: /sound_visualization_9
       Name: sound9
       Namespaces:
         {}
@@ -635,7 +635,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /sound_viz_10
+      Marker Topic: /sound_visualization_10
       Name: sound10
       Namespaces:
         {}
@@ -643,7 +643,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /sound_viz_11
+      Marker Topic: /sound_visualization_11
       Name: sound11
       Namespaces:
         {}
@@ -651,7 +651,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /sound_viz_12
+      Marker Topic: /sound_visualization_12
       Name: sound12
       Namespaces:
         {}
@@ -659,7 +659,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /sound_viz_13
+      Marker Topic: /sound_visualization_13
       Name: sound13
       Namespaces:
         {}
@@ -667,7 +667,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /sound_viz_14
+      Marker Topic: /sound_visualization_14
       Name: sound14
       Namespaces:
         {}
@@ -675,7 +675,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /sound_viz_15
+      Marker Topic: /sound_visualization_15
       Name: sound15
       Namespaces:
         {}
@@ -683,7 +683,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /sound_viz_16
+      Marker Topic: /sound_visualization_16
       Name: sound16
       Namespaces:
         {}
@@ -691,7 +691,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /sound_viz_17
+      Marker Topic: /sound_visualization_17
       Name: sound17
       Namespaces:
         {}
@@ -699,7 +699,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /sound_viz_18
+      Marker Topic: /sound_visualization_18
       Name: sound18
       Namespaces:
         {}
@@ -707,7 +707,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /sound_viz_19
+      Marker Topic: /sound_visualization_19
       Name: sound19
       Namespaces:
         {}
@@ -715,7 +715,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /sound_viz_20
+      Marker Topic: /sound_visualization_20
       Name: sound20
       Namespaces:
         {}

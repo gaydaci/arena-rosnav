@@ -51,6 +51,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
   FILES
   AudioBufferData.msg
+  AudioCurrentOffset.msg
 )
 
 ## Generate services in the 'srv' folder

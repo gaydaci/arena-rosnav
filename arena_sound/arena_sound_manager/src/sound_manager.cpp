@@ -15,12 +15,12 @@ void SoundManager::init(ros::NodeHandle &nh)
     CreateBuffers();
 
     nh = nh;
-    create_ped_sources_service_ = nh.advertiseService("create_ped_sources", &SoundManager::CreatePedSources, this);
-    prepare_source_service_ = nh.advertiseService("prepare_source", &SoundManager::PrepareSource, this);
-    play_source_service_ = nh.advertiseService("play_source", &SoundManager::PlaySource, this);
-    update_source_pos_service_ = nh.advertiseService("update_source_pos", &SoundManager::UpdateSourcePos, this);
-    update_listener_pos_service_ = nh.advertiseService("update_listener_pos", &SoundManager::UpdateListenerPos, this);
-    get_source_volume_service_ = nh.advertiseService("get_source_volume", &SoundManager::GetSourceVolume, this);
+    create_ped_sources_service_ = nh.advertiseService("/sound_manager/create_ped_sources", &SoundManager::CreatePedSources, this);
+    prepare_source_service_ = nh.advertiseService("/sound_manager/prepare_source", &SoundManager::PrepareSource, this);
+    play_source_service_ = nh.advertiseService("/sound_manager/play_source", &SoundManager::PlaySource, this);
+    update_source_pos_service_ = nh.advertiseService("/sound_manager/update_source_pos", &SoundManager::UpdateSourcePos, this);
+    update_listener_pos_service_ = nh.advertiseService("/sound_manager/update_listener_pos", &SoundManager::UpdateListenerPos, this);
+    get_source_volume_service_ = nh.advertiseService("/sound_manager/get_source_volume", &SoundManager::GetSourceVolume, this);
 
     ros::spin();
 }
@@ -34,9 +34,13 @@ bool SoundManager::CreatePedSources(arena_sound_srvs::CreatePedSources::Request 
         playerVector.push_back(player);
 
         string buffer_data_topic = "audio_buffer_data_source_" + to_string(request.source_ids[i]);
-        // ROS_INFO("CreatePedSources %s", buffer_data_topic.c_str());
         ros::Publisher buffer_data_pub = nh.advertise<arena_sound_srvs::AudioBufferData>(buffer_data_topic, 1);
         buffer_data_pubs.push_back(buffer_data_pub);
+
+        string audio_offset_topic = "audio_current_offset_source_" + to_string(request.source_ids[i]);
+        // ROS_INFO("CreatePedSources %s", buffer_data_topic.c_str());
+        ros::Publisher audio_offset_pub = nh.advertise<arena_sound_srvs::AudioCurrentOffset>(audio_offset_topic, 1);
+        audio_offset_pubs.push_back(audio_offset_pub);
     }
 
     response.success = true;
@@ -67,6 +71,11 @@ bool SoundManager::PlaySource(arena_sound_srvs::PlaySource::Request &request,
 
     if (buffer_id > 0) {
         // Publich the buffer data of the sound file currently playing
+        std_msgs::Header msg_header;
+        msg_header.stamp = ros::Time::now();
+        string frame_id = "pedsim_agent_" + to_string(request.source_id);
+        msg_header.frame_id = frame_id;
+        buffer_data_msgs[buffer_id-1].header = msg_header;
         buffer_data_pubs[request.source_id-1].publish(buffer_data_msgs[buffer_id-1]);
     }
     
@@ -122,11 +131,21 @@ bool SoundManager::GetSourceVolume(arena_sound_srvs::GetSourceVolume::Request &r
     }
 
     int source_byte_offset = source_sample_offset*2;
-    int amplitude_at_offset = abs(bufferedData[buffer_id-1][source_byte_offset]); 
+    int amplitude_at_offset = (abs(bufferedData[buffer_id-1][source_byte_offset]) + abs(bufferedData[buffer_id-1][source_byte_offset+1]))/2; 
     double volume = amplitude_at_offset/bufferMaxSignal[buffer_id-1];
     // ROS_INFO("!!!! Volume at buffer %d is %f\n amplitude_at_offset %d, max_signal %f", 
     //             buffer_id, volume,amplitude_at_offset, bufferMaxSignal[buffer_id-1]);
     
+    arena_sound_srvs::AudioCurrentOffset offset_msg;
+    std_msgs::Header msg_header;
+    msg_header.stamp = ros::Time::now();
+    string frame_id = "pedsim_agent_" + to_string(request.source_id);
+    msg_header.frame_id = frame_id;
+    offset_msg.header = msg_header;
+    offset_msg.offset = source_byte_offset;
+    offset_msg.buffer_id = buffer_id;
+    audio_offset_pubs[request.source_id-1].publish(offset_msg);
+
     response.volume = volume;
     response.success = true;
     return true;
@@ -143,7 +162,6 @@ void SoundManager::CreateSocialStateToFileMap() {
     socialStateToSoundFile.insert(std::make_pair("ListeningAndWalking", (config["ListeningAndWalking"].as<string>()).c_str()));
     socialStateToSoundFile.insert(std::make_pair("Listening", config["Listening"].as<string>()));
     socialStateToSoundFile.insert(std::make_pair("TellStory", config["TellStory"].as<string>()));
-    socialStateToSoundFile.insert(std::make_pair("Driving", (config["Driving"].as<string>()).c_str()));
     socialStateToSoundFile.insert(std::make_pair("GroupTalking", (config["GroupTalking"].as<string>()).c_str()));
 
     soundFileToBufferId.insert(std::make_pair("", 0));
